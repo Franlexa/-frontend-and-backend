@@ -5,15 +5,22 @@
   "scripts": {
     "install:frontend": "cd frontend && npm install",
     "install:backend": "cd backend && npm install",
+    "install:all": "npm run install:frontend && npm run install:backend",
     "start:frontend": "cd frontend && npm start",
     "start:server": "cd backend && npm start",
+    "start:all": "npm run start:server & npm run start:frontend",
     "test:frontend:unit": "cd frontend && npm test",
     "test:frontend": "cypress run --spec cypress/e2e/ui/customer.cy.js",
     "test:frontend:with:server": "start-server-and-test start:frontend 3000 test:frontend",
     "test:api": "cypress run --spec cypress/e2e/api/customer.cy.js",
-    "test:api:with:servers": "start-server-and-test  start:frontend 3000 start:server 3000 test:api",
+    "test:api:with:servers": "start-server-and-test start:frontend 3000 start:server 3001 test:api",
     "cy:open": "cypress open",
-    "cy:open:with:servers": "start-server-and-test start:frontend 3000 start:server 3000 cy:open"
+    "cy:open:with:servers": "start-server-and-test start:frontend 3000 start:server 3001 cy:open",
+    "docker:build": "docker-compose build",
+    "docker:start": "docker-compose up",
+    "docker:stop": "docker-compose down",
+    "docker:test:frontend": "docker-compose run cypress cypress run --spec cypress/e2e/ui/customer.cy.js",
+    "docker:test:api": "docker-compose run cypress cypress run --spec cypress/e2e/api/customer.cy.js"
   },
   "repository": {
     "type": "git",
@@ -22,7 +29,9 @@
   "keywords": [
     "Cypress.io",
     "API testing",
-    "Frontend testing"
+    "Frontend testing",
+    "Docker",
+    "CI/CD"
   ],
   "author": "Walmyr Filho <wlsf82@gmail.com> (https://walmyr.dev)",
   "license": "MIT",
