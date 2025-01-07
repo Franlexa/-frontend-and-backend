@@ -108,7 +108,7 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       - name: Check for secrets in commits
-        uses: trufflesecurity/trufflehog@v0.12.3
+        uses: trufflesecurity/trufflehog@v3.88.1
         with:
           scan: git
           branches: all
