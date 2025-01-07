@@ -13,9 +13,6 @@ jobs:
       matrix:
         node-version: [16, 18, 20] # Node.js versions to test
     steps:
-      - uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
       - uses: actions/checkout@v3
       - name: Cache Node modules
         uses: actions/cache@v3
@@ -25,9 +22,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-${{ matrix.node-version }}-
       - name: Install frontend modules
-        run: npm run install:frontend
+        run: cd frontend && npm install
       - name: Run frontend unit tests 🧪
-        run: npm run test:frontend:unit
+        run: cd frontend && npm run test:frontend:unit
 
   api-tests:
     runs-on: ubuntu-latest
@@ -41,9 +38,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
       - name: Install Backend modules
-        run: npm run install:backend
+        run: cd backend && npm install
       - name: Install Frontend modules
-        run: npm run install:frontend
+        run: cd frontend && npm install
       - name: Install Cypress binary
         run: npx cypress install
       - name: Cache Cypress binary
@@ -73,7 +70,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
       - name: Install Frontend modules
-        run: npm run install:frontend
+        run: cd frontend && npm install
       - name: Install Cypress binary
         run: npx cypress install
       - name: Cache Cypress binary
@@ -94,19 +91,17 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Install dependencies
-        run: npm ci
+        run: cd frontend && npm ci
       - name: Run ESLint
-        run: npm run lint
+        run: cd frontend && npm run lint
       - name: SonarCloud Scan
         uses: sonarsource/sonarcloud-github-action@v2
         with:
-          projectBaseDir: .
+          projectBaseDir: frontend
           args: >
             -Dsonar.projectKey=YourProjectKey
             -Dsonar.organization=YourOrganization
             -Dsonar.host.url=https://sonarcloud.io
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       - name: Check for secrets in commits
         uses: trufflesecurity/trufflehog@v3.88.1
         with:
