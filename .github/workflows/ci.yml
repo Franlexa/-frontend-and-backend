@@ -105,7 +105,7 @@ jobs:
           projectBaseDir: .
           args: >
             -Dsonar.projectKey=Franlexa_-frontend-and-backend
-            -Dsonar.organization=Franlexa
+            -Dsonar.organization=Francis Nwagbo
             -Dsonar.host.url=https://sonarcloud.io
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
