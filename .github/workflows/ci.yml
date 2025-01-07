@@ -41,15 +41,18 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
       - name: Install Backend modules
-        uses: cypress-io/github-action@v5
-        with:
-          install-command: npm run install:backend
-          runTests: false
+        run: npm run install:backend
       - name: Install Frontend modules
-        uses: cypress-io/github-action@v5
+        run: npm run install:frontend
+      - name: Install Cypress binary
+        run: npx cypress install
+      - name: Cache Cypress binary
+        uses: actions/cache@v3
         with:
-          install-command: npm run install:frontend
-          runTests: false
+          path: ~/.cache/Cypress
+          key: ${{ runner.os }}-cypress-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-cypress-
       - name: Run API tests 🧪
         uses: cypress-io/github-action@v5
         with:
@@ -70,10 +73,16 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
       - name: Install Frontend modules
-        uses: cypress-io/github-action@v5
+        run: npm run install:frontend
+      - name: Install Cypress binary
+        run: npx cypress install
+      - name: Cache Cypress binary
+        uses: actions/cache@v3
         with:
-          install-command: npm run install:frontend
-          runTests: false
+          path: ~/.cache/Cypress
+          key: ${{ runner.os }}-cypress-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-cypress-
       - name: Run Frontend UI tests 🧪
         uses: cypress-io/github-action@v5
         with:
@@ -84,14 +93,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
-      # Step 1: Lint code for code style (e.g., ESLint for JavaScript)
+      - name: Install dependencies
+        run: npm ci
       - name: Run ESLint
-        run: |
-          npm ci
-          npm run lint
-
-      # Step 2: Check for code smells using SonarCloud
+        run: npm run lint
       - name: SonarCloud Scan
         uses: sonarsource/sonarcloud-github-action@v2
         with:
@@ -102,10 +107,8 @@ jobs:
             -Dsonar.host.url=https://sonarcloud.io
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
-      # Step 3: Scan for secrets in commits using TruffleHog
       - name: Check for secrets in commits
-        uses: trufflesecurity/trufflehog@v3
+        uses: trufflesecurity/trufflehog@v0.12.3
         with:
           scan: git
           branches: all
@@ -115,6 +118,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Send Slack notification on failure
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
           curl -X POST -H 'Content-type: application/json' \
           --data '{"text":"Build failed in job: ${{ github.job }}!"}' $SLACK_WEBHOOK_URL
