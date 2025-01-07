@@ -104,8 +104,8 @@ jobs:
         with:
           projectBaseDir: .
           args: >
-            -Dsonar.projectKey=YourProjectKey
-            -Dsonar.organization=YourOrganization
+            -Dsonar.projectKey=Franlexa_-frontend-and-backend
+            -Dsonar.organization=Franlexa
             -Dsonar.host.url=https://sonarcloud.io
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
