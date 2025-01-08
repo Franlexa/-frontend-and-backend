@@ -1,48 +1,63 @@
-name: Release Automation
+name: Create Release
 
 on:
   push:
     tags:
-      - 'v*' # Triggers on tags starting with 'v'
+      - 'v*' # Trigger on tags that start with 'v'
 
 jobs:
   release:
     runs-on: ubuntu-latest
-
+    
     steps:
-    - name: Checkout repository
+    - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Generate Changelog
+    - name: Set up Git
       run: |
-        LAST_TAG=$(git describe --tags --abbrev=0 HEAD^)
-        echo "Generating changelog since $LAST_TAG"
-        git log --pretty=format:"- %s" $LAST_TAG..HEAD > CHANGELOG.md
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "francisalexnwagbo@gmail.com"
 
-    - name: Build Project
+    - name: Generate Changelog
+      id: changelog
       run: |
-        echo "Run your build commands here"
-        mkdir build && echo "Sample Build Artifact" > build/artifact.txt
+        # Get the last tag; if none exists, default to an initial commit hash
+        last_tag=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "INITIAL_COMMIT")
+        echo "Last tag: $last_tag"
+
+        # Generate the changelog
+        if [ "$last_tag" = "INITIAL_COMMIT" ]; then
+          changelog=$(git log --pretty=format:"- %s (%h)")
+        else
+          changelog=$(git log $last_tag..HEAD --pretty=format:"- %s (%h)")
+        fi
+        echo "changelog=$changelog" >> $GITHUB_ENV
+
+    - name: Build Frontend
+      working-directory: frontend
+      run: |
+        npm install
+        npm run build
+
+    - name: Upload Frontend Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: frontend-build
+        path: frontend/build/
+
+    - name: Create GitHub Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref_name }}
+        release_name: ${{ github.ref_name }}
+        body: ${{ env.changelog }}
+        draft: false
+        prerelease: false
 
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: build-artifacts
-        path: ./build
-
-    - name: Create GitHub Release
-      uses: actions/create-release@v1
-      with:
-        tag_name: ${{ github.ref_name }}
-        release_name: Release ${{ github.ref_name }}
-        body_path: CHANGELOG.md
-        draft: false
-        prerelease: false
-
-    - name: Upload Release Assets
-      uses: actions/upload-release-asset@v1
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./build/artifact.txt
-        asset_name: artifact.txt
-        asset_content_type: text/plain
+        name: frontend-artifacts
+        path: frontend/build/
